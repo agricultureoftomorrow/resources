@@ -1,3 +1,7 @@
+"""
+Uruchomienie skryptu python preprocessing.py --i <path do zdjec> --o <path do modelu tensorflow>
+"""
+
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
@@ -30,12 +34,21 @@ FLAGS = flags.FLAGS
 
 class TFModel():
     
-    def clone_tfmodel(url_download, path_to_model):
-        Repo.clone_from(url_download, path_to_model)
+    def clone_tfmodel(self, url_download, path_to_model):
+        result = self.check_tf_dir(FLAGS.o)
+        if result == False:
+            Repo.clone_from(url_download, path_to_model)
+        else:
+            pass
 
+    def check_tf_dir(self, path):
+        if not os.path.exists(path):
+            return False
+        else:
+            return True
 
 class Framework():
-   
+       
     def create_basic_folder():
         required_folders = ['training', 'data', 'images']
         path = os.path.join(os.getcwd(), 'build')
@@ -122,10 +135,6 @@ class CSV():
             print('---Successfully converted xml to csv.')
 
 
-"""
-do tf_record
-
-"""
 class TFRecord():
 
     def class_text_to_int(self, row_label):
@@ -191,16 +200,14 @@ class TFRecord():
         output_path = os.path.join(os.getcwd(), 'build', 'data\{}'.format(output_file) )
         print('---Successfully created the TFRecords: {}'.format(output_path))
 
-"""
-koniec tf_record
-"""
+
 class Tensorflow():
 
     def copy_to_tensorflow(self):
         path = os.path.join(os.getcwd(),'build')
         for item in os.listdir(path):
             s = os.path.join(path, item)
-            d = os.path.join(FLAGS.o, item)
+            d = os.path.join(FLAGS.o,'models\\research\\object_detection', item)
             if os.path.isdir(s):
                 if not os.path.exists(d):
                     shutil.copytree(s, d, symlinks=False, ignore=None)
@@ -256,13 +263,7 @@ def main(argv):
 
     tf_record.generate_tf('train.record', 'train_labels.csv')
     tf_record.generate_tf('test.record', 'test_labels.csv')
-    # create_basic_folder()   
-    # make_framework(argv)     
-    # check_images_folder()    
-    # make_csv()
-    # create_labelmap()
-    # generate_tf('train.record', 'train_labels.csv')
-    # generate_tf('test.record', 'test_labels.csv')
+
     tensorflow.copy_to_tensorflow()
     tensorflow.query_yes_no('Do you want to start a training session?')
 
