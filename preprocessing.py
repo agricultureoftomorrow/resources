@@ -42,7 +42,7 @@ class TFModel():
             pass
 
     def check_tf_dir(self, path):
-        if not os.path.exists(path):
+        if not os.path.exists(os.path.join(path, 'models-master')):
             return False
         else:
             return True
