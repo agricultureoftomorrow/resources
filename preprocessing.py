@@ -19,8 +19,7 @@ import tensorflow as tf
 from PIL import Image
 from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
-from git import Repo
-
+from google_drive_downloader import GoogleDriveDownloader as gdd
 
 flags = tf.app.flags
 flags.DEFINE_string('i', '', 'Path to images folder')
@@ -29,10 +28,15 @@ FLAGS = flags.FLAGS
 
 
 class TFModel():
-    
-    def clone_tfmodel(url_download, path_to_model):
-        Repo.clone_from(url_download, path_to_model)
+       
+    def download_config_file(self, id, path_to_download):
+        try:
+            gdd.download_file_from_google_drive(id,path_to_download)
+            print('---Successfully downloaded config file')
+        except:
+            print('Error. Problem with download config file from server')
 
+    
 
 class Framework():
    
@@ -122,10 +126,6 @@ class CSV():
             print('---Successfully converted xml to csv.')
 
 
-"""
-do tf_record
-
-"""
 class TFRecord():
 
     def class_text_to_int(self, row_label):
@@ -191,16 +191,14 @@ class TFRecord():
         output_path = os.path.join(os.getcwd(), 'build', 'data\{}'.format(output_file) )
         print('---Successfully created the TFRecords: {}'.format(output_path))
 
-"""
-koniec tf_record
-"""
+
 class Tensorflow():
 
     def copy_to_tensorflow(self):
         path = os.path.join(os.getcwd(),'build')
         for item in os.listdir(path):
             s = os.path.join(path, item)
-            d = os.path.join(FLAGS.o, item)
+            d = os.path.join(FLAGS.o, 'models-master','models','research', 'object_detection', item)
             if os.path.isdir(s):
                 if not os.path.exists(d):
                     shutil.copytree(s, d, symlinks=False, ignore=None)
@@ -246,23 +244,20 @@ def main(argv):
     csv = CSV()
     tf_record = TFRecord()
     tensorflow = Tensorflow()
+    tf_model = TFModel()
 
     framework.create_basic_folder()
     framework.make_framework(argv)
     framework.check_images_folder()
+
+    tf_model.download_config_file('1YTxKOJDzvxN4rjvva1BDRdcJxs1eqO4I', os.path.join(os.getcwd(), 'build', 'training', 'file.config'))
 
     csv.make_csv()
     csv.create_labelmap()
 
     tf_record.generate_tf('train.record', 'train_labels.csv')
     tf_record.generate_tf('test.record', 'test_labels.csv')
-    # create_basic_folder()   
-    # make_framework(argv)     
-    # check_images_folder()    
-    # make_csv()
-    # create_labelmap()
-    # generate_tf('train.record', 'train_labels.csv')
-    # generate_tf('test.record', 'test_labels.csv')
+
     tensorflow.copy_to_tensorflow()
     tensorflow.query_yes_no('Do you want to start a training session?')
 
