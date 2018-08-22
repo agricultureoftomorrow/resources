@@ -36,7 +36,16 @@ class TFModel():
         except:
             print('Error. Problem with download config file from server')
 
-    
+    def download_model(self, id, path_to_download):
+        try:
+            path_temp = os.path.join(FLAGS.o, 'models-master')
+            if not os.path.exists(path_temp):
+                gdd.download_file_from_google_drive(id, path_to_download, unzip=True)
+                print('---Successfully downloaded model')
+            else:
+                print('---Directory exist')
+        except:
+            pass
 
 class Framework():
    
@@ -245,6 +254,8 @@ def main(argv):
     tf_record = TFRecord()
     tensorflow = Tensorflow()
     tf_model = TFModel()
+
+    tf_model.download_model('1vONMF4AoiFtRl-0gxVubY0znVOqsofg9', os.path.join(FLAGS.o, 'models-master.rar'))
 
     framework.create_basic_folder()
     framework.make_framework(argv)
