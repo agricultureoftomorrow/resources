@@ -23,8 +23,7 @@ import tensorflow as tf
 from PIL import Image
 from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
-from git import Repo
-
+from google_drive_downloader import GoogleDriveDownloader as gdd
 
 flags = tf.app.flags
 flags.DEFINE_string('i', '', 'Path to images folder')
@@ -33,19 +32,24 @@ FLAGS = flags.FLAGS
 
 
 class TFModel():
-    
-    def clone_tfmodel(self, url_download, path_to_model):
-        result = self.check_tf_dir(FLAGS.o)
-        if result == False:
-            Repo.clone_from(url_download, path_to_model)
-        else:
-            pass
+       
+    def download_config_file(self, id, path_to_download):
+        try:
+            gdd.download_file_from_google_drive(id,path_to_download)
+            print('---Successfully downloaded config file')
+        except:
+            print('Error. Problem with download config file from server')
 
-    def check_tf_dir(self, path):
-        if not os.path.exists(os.path.join(path, 'models-master')):
-            return False
-        else:
-            return True
+    def download_model(self, id, path_to_download):
+        try:
+            path_temp = os.path.join(FLAGS.o, 'models-master')
+            if not os.path.exists(path_temp):
+                gdd.download_file_from_google_drive(id, path_to_download, unzip=True)
+                print('---Successfully downloaded model')
+            else:
+                print('---Directory exist')
+        except:
+            pass
 
 class Framework():
        
@@ -207,7 +211,7 @@ class Tensorflow():
         path = os.path.join(os.getcwd(),'build')
         for item in os.listdir(path):
             s = os.path.join(path, item)
-            d = os.path.join(FLAGS.o,'models\\research\\object_detection', item)
+            d = os.path.join(FLAGS.o, 'models-master','models','research', 'object_detection', item)
             if os.path.isdir(s):
                 if not os.path.exists(d):
                     shutil.copytree(s, d, symlinks=False, ignore=None)
@@ -253,10 +257,15 @@ def main(argv):
     csv = CSV()
     tf_record = TFRecord()
     tensorflow = Tensorflow()
+    tf_model = TFModel()
+
+    tf_model.download_model('1vONMF4AoiFtRl-0gxVubY0znVOqsofg9', os.path.join(FLAGS.o, 'models-master.rar'))
 
     framework.create_basic_folder()
     framework.make_framework(argv)
     framework.check_images_folder()
+
+    tf_model.download_config_file('1YTxKOJDzvxN4rjvva1BDRdcJxs1eqO4I', os.path.join(os.getcwd(), 'build', 'training', 'file.config'))
 
     csv.make_csv()
     csv.create_labelmap()
