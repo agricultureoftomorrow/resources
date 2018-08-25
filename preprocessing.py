@@ -192,9 +192,9 @@ class TFRecord():
         }))
         return tf_example
 
-    def generate_tf(self, output_file, input_csv):
+    def generate_tf(self, output_file, input_csv, image_dir):
         writer = tf.python_io.TFRecordWriter(os.path.join(os.getcwd(), 'build', 'data\{}'.format(output_file)))
-        path = os.path.join(os.getcwd(),'build', 'images')
+        path = os.path.join(os.getcwd(),'build', 'images\{}'.format(image_dir))
         examples = pd.read_csv(os.path.join(os.getcwd(), 'build','data\{}'.format(input_csv)))
         grouped = self.split(examples, 'filename')
         for group in grouped:
@@ -270,8 +270,8 @@ def main(argv):
     csv.make_csv()
     csv.create_labelmap()
 
-    tf_record.generate_tf('train.record', 'train_labels.csv')
-    tf_record.generate_tf('test.record', 'test_labels.csv')
+    tf_record.generate_tf('train.record', 'train_labels.csv', 'train')
+    tf_record.generate_tf('test.record', 'test_labels.csv', 'test')
 
     tensorflow.copy_to_tensorflow()
     tensorflow.query_yes_no('Do you want to start a training session?')
